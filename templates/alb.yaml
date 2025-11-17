@@ -14,6 +14,7 @@ Parameters:
   ALBSecurityGroupId:
     Type: String
 
+
 Resources:
   ApplicationLoadBalancer:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
@@ -43,6 +44,7 @@ Resources:
       HealthCheckTimeoutSeconds: 5
       HealthyThresholdCount: 2
       UnhealthyThresholdCount: 3
+
       Tags:
         - Key: Name
           Value: !Sub 'web-tg-${Environment}'

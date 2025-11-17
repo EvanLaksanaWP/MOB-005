@@ -38,16 +38,15 @@ Resources:
           </body>
           </html>
           EOF
+          
+          # Register with target group
+          INSTANCE_ID=$(curl -s http://169.254.169.254/latest/meta-data/instance-id)
+          aws elbv2 register-targets --target-group-arn ${TargetGroupArn} --targets Id=$INSTANCE_ID,Port=80
       Tags:
         - Key: Name
           Value: !Sub 'web-ec2-${Environment}'
 
-  TargetGroupAttachment:
-    Type: AWS::ElasticLoadBalancingV2::TargetGroupAttachment
-    Properties:
-      TargetGroupArn: !Ref TargetGroupArn
-      TargetId: !Ref EC2Instance
-      Port: 80
+
 
 Outputs:
   EC2InstanceId:
