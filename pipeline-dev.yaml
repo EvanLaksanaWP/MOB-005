@@ -47,13 +47,19 @@ Resources:
                   - elasticloadbalancing:*
                   - iam:PassRole
                   - iam:CreateServiceLinkedRole
+                  - iam:CreateRole
+                  - iam:DeleteRole
+                  - iam:PutRolePolicy
+                  - iam:DeleteRolePolicy
+                  - iam:GetRole
+                  - iam:CreateInstanceProfile
+                  - iam:DeleteInstanceProfile
+                  - iam:AddRoleToInstanceProfile
+                  - iam:RemoveRoleFromInstanceProfile
+                  - iam:TagRole
+                  - iam:UntagRole
                   - ssm:GetParameter
                   - ssm:GetParameters
-                  - iam:CreateServiceLinkedRole
-                  - ssm:GetParameter
-                  - ssm:GetParameters
-                  - iam:CreateServiceLinkedRole
-                  - iam:CreateServiceLinkedRole
                 Resource: '*'
               - Effect: Allow
                 Action:
