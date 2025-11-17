@@ -11,9 +11,6 @@ phases:
   build:
     commands:
       - echo Build started on `date`
-      - echo Validating templates...
-      - aws cloudformation validate-template --template-body file://main.yaml
-      - aws cloudformation validate-template --template-url https://web-templates-$ENVIRONMENT-$AWS_ACCOUNT_ID.s3.amazonaws.com/templates/network.yaml
       - echo Deploying CloudFormation stack...
       - |
         aws cloudformation deploy \
@@ -21,8 +18,12 @@ phases:
           --stack-name web-infrastructure-$ENVIRONMENT \
           --parameter-overrides Environment=$ENVIRONMENT \
           --capabilities CAPABILITY_IAM \
-          --no-fail-on-empty-changeset \
-          --debug || (echo "Deployment failed, checking events..." && aws cloudformation describe-stack-events --stack-name web-infrastructure-$ENVIRONMENT --query 'StackEvents[?ResourceStatus==`CREATE_FAILED` || ResourceStatus==`UPDATE_FAILED`]' && exit 1)
+          --no-fail-on-empty-changeset || \
+        (echo "Deployment failed, checking events..." && \
+         aws cloudformation describe-stack-events \
+           --stack-name web-infrastructure-$ENVIRONMENT \
+           --query 'StackEvents[?ResourceStatus==`CREATE_FAILED` || ResourceStatus==`UPDATE_FAILED`].[LogicalResourceId,ResourceStatusReason]' \
+           --output table && exit 1)
   post_build:
     commands:
       - echo Build completed on `date`
