@@ -21,22 +21,33 @@ phases:
         fi
       - echo Deploying CloudFormation stack...
       - |
-        aws cloudformation deploy \
+        if aws cloudformation deploy \
           --template-file main.yaml \
           --stack-name web-infrastructure-$ENVIRONMENT \
           --parameter-overrides Environment=$ENVIRONMENT \
           --capabilities CAPABILITY_IAM \
-          --no-fail-on-empty-changeset || \
-        (echo "Deployment failed, checking events..." && \
-         aws cloudformation describe-stack-events \
-           --stack-name web-infrastructure-$ENVIRONMENT \
-           --query 'StackEvents[?ResourceStatus==`CREATE_FAILED` || ResourceStatus==`UPDATE_FAILED`].[LogicalResourceId,ResourceStatusReason]' \
-           --output table && \
-         echo "Checking ALB stack events..." && \
-         ALB_STACK=$(aws cloudformation describe-stack-resources --stack-name web-infrastructure-$ENVIRONMENT --logical-resource-id ALBStack --query 'StackResources[0].PhysicalResourceId' --output text 2>/dev/null || echo "NOT_FOUND") && \
-         if [ "$ALB_STACK" != "NOT_FOUND" ]; then \
-           aws cloudformation describe-stack-events --stack-name $ALB_STACK --query 'StackEvents[?ResourceStatus==`CREATE_FAILED`].[LogicalResourceId,ResourceStatusReason]' --output table; \
-         fi && exit 1)
+          --no-fail-on-empty-changeset; then
+          echo "Deployment successful"
+        else
+          echo "Deployment failed, initiating automatic rollback..."
+          aws cloudformation describe-stack-events \
+            --stack-name web-infrastructure-$ENVIRONMENT \
+            --query 'StackEvents[?ResourceStatus==`CREATE_FAILED` || ResourceStatus==`UPDATE_FAILED`].[LogicalResourceId,ResourceStatusReason]' \
+            --output table
+          
+          echo "Starting rollback process..."
+          aws cloudformation cancel-update-stack \
+            --stack-name web-infrastructure-$ENVIRONMENT 2>/dev/null || \
+          aws cloudformation continue-update-rollback \
+            --stack-name web-infrastructure-$ENVIRONMENT
+          
+          echo "Waiting for rollback to complete..."
+          aws cloudformation wait stack-rollback-complete \
+            --stack-name web-infrastructure-$ENVIRONMENT
+          
+          echo "Rollback completed, deployment failed"
+          exit 1
+        fi
   post_build:
     commands:
       - echo Build completed on `date`

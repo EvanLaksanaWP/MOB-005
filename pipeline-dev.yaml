@@ -1,4 +1,4 @@
-AWSTemplateFormatVersion: '2010-09-09'
+AWSTemplateFormatVersion: 2010-09-09
 Description: 'CodePipeline for Dev Environment'
 
 Parameters:
@@ -39,9 +39,7 @@ Resources:
                   - logs:CreateLogGroup
                   - logs:CreateLogStream
                   - logs:PutLogEvents
-                  - s3:GetObject
-                  - s3:PutObject
-                  - s3:ListBucket
+                  - s3:*
                   - cloudformation:*
                   - ec2:*
                   - elasticloadbalancing:*
@@ -65,6 +63,30 @@ Resources:
                 Action:
                   - codeconnections:UseConnection
                 Resource: '*'
+
+  TestProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: web-test-dev
+      ServiceRole: !GetAtt CodeBuildRole.Arn
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        Type: LINUX_CONTAINER
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: aws/codebuild/amazonlinux2-x86_64-standard:3.0
+        EnvironmentVariables:
+          - Name: ENVIRONMENT
+            Value: dev
+          - Name: TEMPLATE_BUCKET
+            Value: !Ref TemplateBucket
+          - Name: AWS_ACCOUNT_ID
+            Value: !Ref 'AWS::AccountId'
+          - Name: AWS_DEFAULT_REGION
+            Value: !Ref 'AWS::Region'
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: buildspec-test.yml
 
   CodeBuildProject:
     Type: AWS::CodeBuild::Project
@@ -142,6 +164,20 @@ Resources:
                 BranchName: dev
               OutputArtifacts:
                 - Name: SourceOutput
+        - Name: Test
+          Actions:
+            - Name: TestAction
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: '1'
+              Configuration:
+                ProjectName: !Ref TestProject
+              InputArtifacts:
+                - Name: SourceOutput
+              OutputArtifacts:
+                - Name: TestOutput
         - Name: Deploy
           Actions:
             - Name: DeployAction

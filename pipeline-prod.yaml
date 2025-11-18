@@ -1,4 +1,4 @@
-AWSTemplateFormatVersion: '2010-09-09'
+AWSTemplateFormatVersion: 2010-09-09
 Description: 'CodePipeline for Prod Environment'
 
 Parameters:
@@ -87,6 +87,24 @@ Resources:
       Source:
         Type: CODEPIPELINE
         BuildSpec: buildspec.yml
+
+  RollbackProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: web-rollback-prod
+      ServiceRole: !GetAtt CodeBuildRole.Arn
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        Type: LINUX_CONTAINER
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: aws/codebuild/amazonlinux2-x86_64-standard:3.0
+        EnvironmentVariables:
+          - Name: ENVIRONMENT
+            Value: prod
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: buildspec-rollback.yml
 
   CodePipelineRole:
     Type: AWS::IAM::Role
