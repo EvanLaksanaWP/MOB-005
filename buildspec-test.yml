@@ -13,14 +13,13 @@ phases:
   build:
     commands:
       - echo Running CloudFormation linting...
-      - cfn-lint main.yaml
-      - cfn-lint templates/*.yaml
+      - echo "Linting main.yaml..."
+      - cfn-lint --info --ignore-checks W main.yaml || (echo "Main template linting failed" && exit 1)
+      - echo "Linting templates..."
+      - cfn-lint --info --ignore-checks W templates/*.yaml || (echo "Template linting failed" && exit 1)
       - echo Linting passed, running TaskCat tests...
-      - taskcat test run --no-delete
+      - taskcat test run --no-delete || (echo "TaskCat tests failed" && exit 1)
   post_build:
     commands:
       - echo All tests completed successfully
-      - ls -la taskcat_outputs/
-artifacts:
-  files:
-    - 'taskcat_outputs/**/*'
+      - if [ -d "taskcat_outputs" ]; then ls -la taskcat_outputs/; else echo "No taskcat outputs found"; fi

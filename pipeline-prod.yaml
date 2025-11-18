@@ -169,17 +169,5 @@ Resources:
                 ProjectName: !Ref CodeBuildProject
               InputArtifacts:
                 - Name: SourceOutput
-        - Name: Rollback
-          Actions:
-            - Name: RollbackAction
-              ActionTypeId:
-                Category: Build
-                Owner: AWS
-                Provider: CodeBuild
-                Version: '1'
-              Configuration:
-                ProjectName: !Ref RollbackProject
-              InputArtifacts:
-                - Name: SourceOutput
-              RunOrder: 1
+
 
