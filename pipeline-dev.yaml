@@ -44,6 +44,7 @@ Resources:
                   - s3:PutObject
                   - s3:ListBucket
                   - s3:PutBucketTagging
+                  - s3:PutBucketPolicy 
                   - cloudformation:*
                   - ec2:*
                   - elasticloadbalancing:*
