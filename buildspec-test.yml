@@ -25,3 +25,7 @@ phases:
     commands:
       - echo All tests completed successfully
       - if [ -d "taskcat_outputs" ]; then ls -la taskcat_outputs/; else echo "No taskcat outputs found"; fi
+artifacts:
+  files:
+    - 'taskcat_outputs/**/*'
+  name: TaskCatReports
