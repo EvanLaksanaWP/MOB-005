@@ -5,7 +5,7 @@ phases:
     runtime-versions:
       python: 3.9
     commands:
-      - pip install taskcat cfn-lint
+      - pip install taskcat cfn-lint==1.35.3
   pre_build:
     commands:
       - echo Starting linting and testing...
