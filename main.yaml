@@ -11,14 +11,14 @@ Resources:
   NetworkStack:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: !Sub 'https://web-templates-${Environment}-${AWS::AccountId}-${AWS::Region}.s3.amazonaws.com/templates/network.yaml'
+      TemplateURL: !Sub 'https://web-templates-${Environment}-${AWS::AccountId}-evngtg123.s3.amazonaws.com/templates/network.yaml'
       Parameters:
         Environment: !Ref Environment
 
   SecurityStack:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: !Sub 'https://web-templates-${Environment}-${AWS::AccountId}-${AWS::Region}.s3.amazonaws.com/templates/security.yaml'
+      TemplateURL: !Sub 'https://web-templates-${Environment}-${AWS::AccountId}-evngtg123.s3.amazonaws.com/templates/security.yaml'
       Parameters:
         Environment: !Ref Environment
         VPCId: !GetAtt NetworkStack.Outputs.VPCId
@@ -26,7 +26,7 @@ Resources:
   ALBStack:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: !Sub 'https://web-templates-${Environment}-${AWS::AccountId}-${AWS::Region}.s3.amazonaws.com/templates/alb.yaml'
+      TemplateURL: !Sub 'https://web-templates-${Environment}-${AWS::AccountId}-evngtg123.s3.amazonaws.com/templates/alb.yaml'
       Parameters:
         Environment: !Ref Environment
         VPCId: !GetAtt NetworkStack.Outputs.VPCId
@@ -37,7 +37,7 @@ Resources:
   EC2Stack:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: !Sub 'https://web-templates-${Environment}-${AWS::AccountId}-${AWS::Region}.s3.amazonaws.com/templates/ec2.yaml'
+      TemplateURL: !Sub 'https://web-templates-${Environment}-${AWS::AccountId}-evngtg123.s3.amazonaws.com/templates/ec2.yaml'
       Parameters:
         Environment: !Ref Environment
         PublicSubnetId: !GetAtt NetworkStack.Outputs.PublicSubnetId
@@ -47,7 +47,7 @@ Resources:
   MonitoringStack:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: !Sub 'https://web-templates-${Environment}-${AWS::AccountId}-${AWS::Region}.s3.amazonaws.com/templates/monitoring.yaml'
+      TemplateURL: !Sub 'https://web-templates-${Environment}-${AWS::AccountId}-evngtg123.s3.amazonaws.com/templates/monitoring.yaml'
       Parameters:
         Environment: !Ref Environment
         ALBFullName: !GetAtt ALBStack.Outputs.ALBFullName

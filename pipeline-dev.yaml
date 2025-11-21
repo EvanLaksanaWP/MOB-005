@@ -10,14 +10,14 @@ Resources:
   ArtifactBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Sub 'web-pipeline-artifacts-dev-${AWS::AccountId}-${AWS::Region}'
+      BucketName: !Sub 'web-pipeline-artifacts-dev-${AWS::AccountId}-evngtg123'
       VersioningConfiguration:
         Status: Enabled
 
   TemplateBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Sub 'web-templates-dev-${AWS::AccountId}-${AWS::Region}'
+      BucketName: !Sub 'web-templates-dev-${AWS::AccountId}-evngtg123'
 
   CodeBuildRole:
     Type: AWS::IAM::Role
