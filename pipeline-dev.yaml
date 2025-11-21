@@ -57,6 +57,7 @@ Resources:
                   - iam:TagRole
                   - iam:UntagRole
                   - iam:DetachRolePolicy 
+                  - iam:AttachRolePolicy
                   - ssm:GetParameter
                   - ssm:GetParameters
                 Resource: '*'
