@@ -1,0 +1,210 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: 'CloudWatch monitoring, alarms, and SNS notifications'
+
+Parameters:
+  Environment:
+    Type: String
+    AllowedValues: [dev, prod]
+  ALBFullName:
+    Type: String
+    Description: Full name of the Application Load Balancer
+  TargetGroupFullName:
+    Type: String
+    Description: Full name of the Target Group
+  EC2InstanceId:
+    Type: String
+    Description: EC2 Instance ID
+
+Resources:
+  OperationsNotificationTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: !Sub 'operations-notifications-${Environment}'
+      DisplayName: !Sub 'Operations Notifications - ${Environment}'
+
+  OperationsEmailSubscription1:
+    Type: AWS::SNS::Subscription
+    Properties:
+      Protocol: email
+      TopicArn: !Ref OperationsNotificationTopic
+      Endpoint: evan.pratama@helios.id
+
+  OperationsEmailSubscription2:
+    Type: AWS::SNS::Subscription
+    Properties:
+      Protocol: email
+      TopicArn: !Ref OperationsNotificationTopic
+      Endpoint: yuwan.cornelius@helios.id
+
+  InfrastructureDashboard:
+    Type: AWS::CloudWatch::Dashboard
+    Properties:
+      DashboardName: !Sub 'infrastructure-${Environment}'
+      DashboardBody: !Sub |
+        {
+          "widgets": [
+            {
+              "type": "metric",
+              "properties": {
+                "metrics": [
+                  ["AWS/ApplicationELB", "RequestCount", {"stat": "Sum", "label": "Request Count"}],
+                  [".", "TargetResponseTime", {"stat": "Average", "label": "Response Time"}],
+                  [".", "HealthyHostCount", {"stat": "Average", "label": "Healthy Hosts"}],
+                  [".", "UnHealthyHostCount", {"stat": "Average", "label": "Unhealthy Hosts"}]
+                ],
+                "period": 300,
+                "stat": "Average",
+                "region": "${AWS::Region}",
+                "title": "ALB Metrics",
+                "yAxis": {
+                  "left": {
+                    "label": "Count"
+                  }
+                }
+              }
+            },
+            {
+              "type": "metric",
+              "properties": {
+                "metrics": [
+                  ["AWS/EC2", "CPUUtilization", {"stat": "Average", "label": "CPU Utilization"}],
+                  [".", "NetworkIn", {"stat": "Sum", "label": "Network In"}],
+                  [".", "NetworkOut", {"stat": "Sum", "label": "Network Out"}]
+                ],
+                "period": 300,
+                "stat": "Average",
+                "region": "${AWS::Region}",
+                "title": "EC2 Metrics",
+                "yAxis": {
+                  "left": {
+                    "label": "Value"
+                  }
+                }
+              }
+            }
+          ]
+        }
+
+  ALBUnhealthyTargetAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub '${Environment}-alb-unhealthy-targets'
+      AlarmDescription: Alert when ALB has unhealthy targets
+      MetricName: UnHealthyHostCount
+      Namespace: AWS/ApplicationELB
+      Statistic: Average
+      Period: 60
+      EvaluationPeriods: 2
+      Threshold: 0
+      ComparisonOperator: GreaterThanThreshold
+      Dimensions:
+        - Name: LoadBalancer
+          Value: !Ref ALBFullName
+        - Name: TargetGroup
+          Value: !Ref TargetGroupFullName
+      AlarmActions:
+        - !Ref OperationsNotificationTopic
+      OKActions:
+        - !Ref OperationsNotificationTopic
+
+  ALBResponseTimeAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub '${Environment}-alb-response-time'
+      AlarmDescription: Alert when ALB response time exceeds threshold
+      MetricName: TargetResponseTime
+      Namespace: AWS/ApplicationELB
+      Statistic: Average
+      Period: 60
+      EvaluationPeriods: 3
+      Threshold: 1
+      ComparisonOperator: GreaterThanThreshold
+      Dimensions:
+        - Name: LoadBalancer
+          Value: !Ref ALBFullName
+        - Name: TargetGroup
+          Value: !Ref TargetGroupFullName
+      AlarmActions:
+        - !Ref OperationsNotificationTopic
+      OKActions:
+        - !Ref OperationsNotificationTopic
+
+  ALB5xxErrorAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub '${Environment}-alb-5xx-errors'
+      AlarmDescription: Alert when ALB 5xx error rate exceeds threshold
+      MetricName: HTTPCode_Target_5XX_Count
+      Namespace: AWS/ApplicationELB
+      Statistic: Sum
+      Period: 60
+      EvaluationPeriods: 2
+      Threshold: 5
+      ComparisonOperator: GreaterThanThreshold
+      Dimensions:
+        - Name: LoadBalancer
+          Value: !Ref ALBFullName
+        - Name: TargetGroup
+          Value: !Ref TargetGroupFullName
+      AlarmActions:
+        - !Ref OperationsNotificationTopic
+      OKActions:
+        - !Ref OperationsNotificationTopic
+      TreatMissingData: notBreaching
+
+  EC2CPUAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub '${Environment}-ec2-high-cpu'
+      AlarmDescription: Alert when EC2 CPU utilization exceeds threshold
+      MetricName: CPUUtilization
+      Namespace: AWS/EC2
+      Statistic: Average
+      Period: 60
+      EvaluationPeriods: 5
+      Threshold: 80
+      ComparisonOperator: GreaterThanThreshold
+      Dimensions:
+        - Name: InstanceId
+          Value: !Ref EC2InstanceId
+      AlarmActions:
+        - !Ref OperationsNotificationTopic
+      OKActions:
+        - !Ref OperationsNotificationTopic
+
+  ALBLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/alb/${Environment}'
+      RetentionInDays: 30
+
+  EC2LogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/ec2/${Environment}'
+      RetentionInDays: 30
+
+Outputs:
+  SNSTopicArn:
+    Description: ARN of operations notification topic
+    Value: !Ref OperationsNotificationTopic
+    Export:
+      Name: !Sub '${AWS::StackName}-SNS-Topic-ARN'
+
+  DashboardName:
+    Description: Name of CloudWatch dashboard
+    Value: !Ref InfrastructureDashboard
+    Export:
+      Name: !Sub '${AWS::StackName}-Dashboard-Name'
+
+  ALBLogGroupName:
+    Description: Name of ALB log group
+    Value: !Ref ALBLogGroup
+    Export:
+      Name: !Sub '${AWS::StackName}-ALB-LogGroup-Name'
+
+  EC2LogGroupName:
+    Description: Name of EC2 log group
+    Value: !Ref EC2LogGroup
+    Export:
+      Name: !Sub '${AWS::StackName}-EC2-LogGroup-Name'

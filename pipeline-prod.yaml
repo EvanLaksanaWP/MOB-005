@@ -4,20 +4,20 @@ Description: 'CodePipeline for Prod Environment'
 Parameters:
   ConnectionArn:
     Type: String
-    Default: 'arn:aws:codeconnections:ap-southeast-2:279199663312:connection/b6c8bcb4-2dff-4c8b-b1f3-a86546d72dbe'
+    Default: 'arn:aws:codeconnections:ap-southeast-2:279199663312:connection/4e86e243-d1dd-420d-a187-6bba6a84a36a'
 
 Resources:
   ArtifactBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Sub 'web-pipeline-artifacts-prod-${AWS::AccountId}'
+      BucketName: !Sub 'web-pipeline-artifacts-prod-${AWS::AccountId}-${AWS::Region}'
       VersioningConfiguration:
         Status: Enabled
 
   TemplateBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Sub 'web-templates-prod-${AWS::AccountId}'
+      BucketName: !Sub 'web-templates-prod-${AWS::AccountId}-${AWS::Region}'
 
   CodeBuildRole:
     Type: AWS::IAM::Role

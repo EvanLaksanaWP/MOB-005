@@ -45,8 +45,7 @@ This project implements a complete CI/CD pipeline for AWS 2-tier web infrastruct
 aws cloudformation deploy \
   --template-file pipeline-dev.yaml \
   --stack-name web-pipeline-dev \
-  --capabilities CAPABILITY_IAM \
-  --region ap-southeast-2
+  --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND
 ```
 
 #### 2. Deploy Prod Pipeline
@@ -55,7 +54,6 @@ aws cloudformation deploy \
   --template-file pipeline-prod.yaml \
   --stack-name web-pipeline-prod \
   --capabilities CAPABILITY_IAM \
-  --region ap-southeast-2
 ```
 
 ### Pipeline Triggers

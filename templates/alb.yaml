@@ -1,6 +1,16 @@
 AWSTemplateFormatVersion: 2010-09-09
 Description: 'Application Load Balancer and Target Group'
 
+# ALB Access Logging Configuration:
+# ALB access logs are stored in S3, not CloudWatch Logs directly.
+# To enable access logging, add LoadBalancerAttributes to the ApplicationLoadBalancer resource:
+#   LoadBalancerAttributes:
+#     - Key: access_logs.s3.enabled
+#       Value: 'true'
+#     - Key: access_logs.s3.bucket
+#       Value: !Sub 'web-alb-logs-${Environment}-${AWS::AccountId}'
+# Note: S3 bucket must be created separately with appropriate bucket policy for ALB service.
+
 Parameters:
   Environment:
     Type: String
@@ -64,3 +74,9 @@ Outputs:
     Value: !GetAtt ApplicationLoadBalancer.DNSName
   TargetGroupArn:
     Value: !Ref TargetGroup
+  ALBFullName:
+    Description: Full name of the Application Load Balancer for CloudWatch metrics
+    Value: !GetAtt ApplicationLoadBalancer.LoadBalancerFullName
+  TargetGroupFullName:
+    Description: Full name of the Target Group for CloudWatch metrics
+    Value: !GetAtt TargetGroup.TargetGroupFullName

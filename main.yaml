@@ -44,6 +44,16 @@ Resources:
         EC2SecurityGroupId: !GetAtt SecurityStack.Outputs.EC2SecurityGroupId
         TargetGroupArn: !GetAtt ALBStack.Outputs.TargetGroupArn
 
+  MonitoringStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub 'https://web-templates-${Environment}-${AWS::AccountId}.s3.amazonaws.com/templates/monitoring.yaml'
+      Parameters:
+        Environment: !Ref Environment
+        ALBFullName: !GetAtt ALBStack.Outputs.ALBFullName
+        TargetGroupFullName: !GetAtt ALBStack.Outputs.TargetGroupFullName
+        EC2InstanceId: !GetAtt EC2Stack.Outputs.EC2InstanceId
+
 Outputs:
   ALBDNSName:
     Description: DNS name of the Application Load Balancer
@@ -62,3 +72,27 @@ Outputs:
     Value: !GetAtt NetworkStack.Outputs.VPCId
     Export:
       Name: !Sub '${AWS::StackName}-VPC-ID'
+
+  SNSTopicArn:
+    Description: ARN of operations notification topic
+    Value: !GetAtt MonitoringStack.Outputs.SNSTopicArn
+    Export:
+      Name: !Sub '${AWS::StackName}-SNS-Topic-ARN'
+
+  DashboardName:
+    Description: Name of CloudWatch dashboard
+    Value: !GetAtt MonitoringStack.Outputs.DashboardName
+    Export:
+      Name: !Sub '${AWS::StackName}-Dashboard-Name'
+
+  ALBLogGroupName:
+    Description: Name of ALB log group
+    Value: !GetAtt MonitoringStack.Outputs.ALBLogGroupName
+    Export:
+      Name: !Sub '${AWS::StackName}-ALB-LogGroup-Name'
+
+  EC2LogGroupName:
+    Description: Name of EC2 log group
+    Value: !GetAtt MonitoringStack.Outputs.EC2LogGroupName
+    Export:
+      Name: !Sub '${AWS::StackName}-EC2-LogGroup-Name'

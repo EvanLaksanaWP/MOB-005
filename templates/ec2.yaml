@@ -30,6 +30,8 @@ Resources:
             Principal:
               Service: ec2.amazonaws.com
             Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy
       Policies:
         - PolicyName: ELBRegistration
           PolicyDocument:
@@ -57,12 +59,13 @@ Resources:
       SecurityGroupIds:
         - !Ref EC2SecurityGroupId
       IamInstanceProfile: !Ref EC2InstanceProfile
+      Monitoring: true
       UserData:
         Fn::Base64: !Sub |
           #!/bin/bash
           ENVIRONMENT=${Environment}
           dnf update -y
-          dnf install -y nginx
+          dnf install -y nginx amazon-cloudwatch-agent
           systemctl enable nginx
           systemctl start nginx
           cat <<EOF > /usr/share/nginx/html/index.html
@@ -74,6 +77,35 @@ Resources:
           </body>
           </html>
           EOF
+          
+          cat <<'CWCONFIG' > /opt/aws/amazon-cloudwatch-agent/etc/config.json
+          {
+            "logs": {
+              "logs_collected": {
+                "files": {
+                  "collect_list": [
+                    {
+                      "file_path": "/var/log/nginx/access.log",
+                      "log_group_name": "/aws/ec2/web-server",
+                      "log_stream_name": "{instance_id}/nginx-access"
+                    },
+                    {
+                      "file_path": "/var/log/nginx/error.log",
+                      "log_group_name": "/aws/ec2/web-server",
+                      "log_stream_name": "{instance_id}/nginx-error"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+          CWCONFIG
+          
+          /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl \
+            -a fetch-config \
+            -m ec2 \
+            -s \
+            -c file:/opt/aws/amazon-cloudwatch-agent/etc/config.json
           
           # Register with target group
           echo "Starting target group registration..."
@@ -96,7 +128,7 @@ Resources:
           # Wait for AWS CLI to be ready and retry registration
           for i in {1..5}; do
             echo "Registration attempt $i..."
-            if aws elbv2 register-targets --target-group-arn ${TargetGroupArn} --targets Id=$INSTANCE_ID,Port=80 --region us-east-1; then
+            if aws elbv2 register-targets --target-group-arn ${TargetGroupArn} --targets Id=$INSTANCE_ID,Port=80 --region ap-southeast-2; then
               echo "Successfully registered with target group"
               break
             else
@@ -113,3 +145,5 @@ Resources:
 Outputs:
   EC2InstanceId:
     Value: !Ref EC2Instance
+    Export:
+      Name: !Sub '${AWS::StackName}-InstanceId'

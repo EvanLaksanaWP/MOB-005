@@ -4,20 +4,20 @@ Description: 'CodePipeline for Dev Environment'
 Parameters:
   ConnectionArn:
     Type: String
-    Default: 'arn:aws:codeconnections:ap-southeast-2:279199663312:connection/b6c8bcb4-2dff-4c8b-b1f3-a86546d72dbe'
+    Default: 'arn:aws:codeconnections:ap-southeast-2:279199663312:connection/4e86e243-d1dd-420d-a187-6bba6a84a36a'
 
 Resources:
   ArtifactBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Sub 'web-pipeline-artifacts-dev-${AWS::AccountId}'
+      BucketName: !Sub 'web-pipeline-artifacts-dev-${AWS::AccountId}-${AWS::Region}'
       VersioningConfiguration:
         Status: Enabled
 
   TemplateBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Sub 'web-templates-dev-${AWS::AccountId}'
+      BucketName: !Sub 'web-templates-dev-${AWS::AccountId}-${AWS::Region}'
 
   CodeBuildRole:
     Type: AWS::IAM::Role
@@ -160,7 +160,7 @@ Resources:
                 Version: '1'
               Configuration:
                 ConnectionArn: !Ref ConnectionArn
-                FullRepositoryId: 'EvanLaksanaWP/cloudformation-cicd-mcr'
+                FullRepositoryId: 'EvanLaksanaWP/MOB-005'
                 BranchName: dev
               OutputArtifacts:
                 - Name: SourceOutput
