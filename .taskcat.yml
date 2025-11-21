@@ -5,12 +5,6 @@ project:
   parameters:
     Environment: dev
 tests:
-  template-validation:
-    template: main.yaml
-    parameters:
-      Environment: dev
-    regions:
-      - us-west-2
   monitoring-stack-validation:
     template: main.yaml
     parameters:
