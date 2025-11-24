@@ -24,7 +24,7 @@ phases:
   post_build:
     commands:
       - echo All tests completed successfully
-      - if [ -d "taskcat_outputs" ]; then ls -la taskcat_outputs/; else echo "No taskcat outputs found"; fi
+      - if [ -d "taskcat_outputs" ]; then find taskcat_outputs -name "*.txt" -exec sh -c 'echo "=== {} ===" && cat {}' \;; fi
 artifacts:
   files:
     - 'taskcat_outputs/**/*'

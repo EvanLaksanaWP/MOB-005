@@ -39,7 +39,7 @@ Resources:
   InfrastructureDashboard:
     Type: AWS::CloudWatch::Dashboard
     Properties:
-      DashboardName: !Sub 'infrastructure-${Environment}'
+      DashboardName: !Sub 'infrastructure-${Environment}-${AWS::StackName}'
       DashboardBody: !Sub |
         {
           "widgets": [
@@ -47,10 +47,10 @@ Resources:
               "type": "metric",
               "properties": {
                 "metrics": [
-                  ["AWS/ApplicationELB", "RequestCount", {"stat": "Sum", "label": "Request Count"}],
-                  [".", "TargetResponseTime", {"stat": "Average", "label": "Response Time"}],
-                  [".", "HealthyHostCount", {"stat": "Average", "label": "Healthy Hosts"}],
-                  [".", "UnHealthyHostCount", {"stat": "Average", "label": "Unhealthy Hosts"}]
+                  ["AWS/ApplicationELB", "RequestCount", "LoadBalancer", "${ALBFullName}", {"stat": "Sum", "label": "Request Count"}],
+                  [".", "TargetResponseTime", ".", ".", {"stat": "Average", "label": "Response Time"}],
+                  [".", "HealthyHostCount", ".", ".", {"stat": "Average", "label": "Healthy Hosts"}],
+                  [".", "UnHealthyHostCount", ".", ".", {"stat": "Average", "label": "Unhealthy Hosts"}]
                 ],
                 "period": 300,
                 "stat": "Average",

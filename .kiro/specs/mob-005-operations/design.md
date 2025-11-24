@@ -135,6 +135,36 @@ docs/
     └── operations.md          # Daily operations procedures
 ```
 
+### 6. Manual Rollback Buildspec (buildspec-rollback.yml)
+
+**Purpose**: Provides manual rollback capability for production environment to revert to previous stable CloudFormation template version.
+
+**Trigger**: Manual execution via AWS CodeBuild console or AWS CLI when operations team decides to rollback production deployment.
+
+**Process Flow**:
+1. Retrieve current production stack name and template bucket
+2. List S3 template versions to identify previous version
+3. Download previous template version from S3
+4. Execute CloudFormation update-stack with previous template
+5. Wait for stack update to complete
+6. Verify stack status and output rollback details
+
+**Environment Variables**:
+- `STACK_NAME`: Production stack name (default: web-infrastructure-prod)
+- `TEMPLATE_BUCKET`: S3 bucket containing template versions
+- `AWS_REGION`: Target region (ap-southeast-2)
+
+**Outputs**:
+- Previous template version ID
+- Stack update status
+- Rollback completion timestamp
+
+**Safety Mechanisms**:
+- Environment check to prevent dev rollbacks
+- Stack status validation before rollback
+- Confirmation of previous template version existence
+- Stack update failure handling with detailed error output
+
 ## Data Models
 
 ### CloudWatch Dashboard Widget Configuration
@@ -219,6 +249,39 @@ Properties:
 }
 ```
 
+### Manual Rollback Buildspec Structure
+
+```yaml
+version: 0.2
+env:
+  variables:
+    STACK_NAME: "web-infrastructure-prod"
+    AWS_REGION: "ap-southeast-2"
+phases:
+  pre_build:
+    commands:
+      - echo "Validating production environment"
+      - |
+        if [[ ! "$STACK_NAME" =~ "prod" ]]; then
+          echo "ERROR: Rollback only allowed for production stacks"
+          exit 1
+        fi
+  build:
+    commands:
+      - echo "Retrieving previous template version from S3"
+      - aws s3api list-object-versions --bucket $TEMPLATE_BUCKET --prefix main.yaml
+      - echo "Downloading previous template version"
+      - aws s3 cp s3://$TEMPLATE_BUCKET/main.yaml?versionId=$PREVIOUS_VERSION main-previous.yaml
+      - echo "Executing rollback to previous version"
+      - aws cloudformation update-stack --stack-name $STACK_NAME --template-body file://main-previous.yaml
+  post_build:
+    commands:
+      - echo "Waiting for stack update to complete"
+      - aws cloudformation wait stack-update-complete --stack-name $STACK_NAME
+      - echo "Rollback completed successfully"
+      - aws cloudformation describe-stacks --stack-name $STACK_NAME --query 'Stacks[0].StackStatus'
+```
+
 ## Correctness Properties
 
 *A property is a characteristic or behavior that should hold true across all valid executions of a system-essentially, a formal statement about what the system should do. Properties serve as the bridge between human-readable specifications and machine-verifiable correctness guarantees.*
@@ -251,7 +314,13 @@ Properties:
 
 *For any* compliance verification, the docs directory SHALL contain runbooks for deployment, incident-response, and rollback, and SHALL contain SOPs for change-management, release-process, and operations.
 
-**Validates: Requirements 4.1, 5.1, 6.1, 7.1, 8.1, 9.1, 12.3, 12.4**
+**Validates: Requirements 4.1, 5.1, 6.1, 8.1, 9.1, 10.1, 13.3, 13.4**
+
+### Property 6: Rollback buildspec targets production only
+
+*For any* execution of buildspec-rollback.yml, the buildspec SHALL verify the target stack name contains "prod" before executing rollback operations.
+
+**Validates: Requirements 7.5**
 
 ## Error Handling
 

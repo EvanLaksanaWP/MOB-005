@@ -8,7 +8,7 @@
   - Create CloudWatch alarms for unhealthy targets, response time, 5xx errors, and CPU utilization
   - Define CloudWatch log groups with 30-day retention
   - Add outputs for SNS topic ARN, dashboard name, and log group names
-  - _Requirements: 1.1, 2.1, 2.2, 2.3, 2.4, 3.1, 10.2, 10.3, 10.4, 10.5, 11.1_
+  - _Requirements: 1.1, 2.1, 2.2, 2.3, 2.4, 3.1, 11.2, 11.3, 11.4, 11.5, 12.1_
 
 - [x] 1.1 Write property test for dashboard metric coverage
   - **Property 1: Dashboard contains all required metrics**
@@ -27,11 +27,11 @@
   - Pass ALB and EC2 resource identifiers from existing stacks to monitoring stack
   - Configure MonitoringStack to depend on ALB and EC2 stacks
   - Add monitoring stack outputs to main.yaml exports
-  - _Requirements: 10.1, 10.6_
+  - _Requirements: 11.1, 11.6_
 
 - [x] 2.1 Write property test for monitoring stack integration
   - **Property 4: Monitoring stack integrates with main stack**
-  - **Validates: Requirements 10.6**
+  - **Validates: Requirements 11.6**
 
 - [x] 3. Update ALB template for logging
   - Update templates/alb.yaml to export ALB full name output
@@ -54,7 +54,7 @@
   - Document CloudFormation stack status checks and output verification
   - Document automatic rollback behavior and manual intervention steps for failures
   - Include SNS email subscription confirmation requirement
-  - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5, 11.5_
+  - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5, 12.5_
 
 - [x] 6. Create incident response runbook
   - Create docs/runbooks/incident-response.md
@@ -74,6 +74,19 @@
   - Document manual stack deletion and redeployment procedures for failed automatic rollback
   - _Requirements: 6.1, 6.2, 6.3, 6.4, 6.5_
 
+- [x] 7.1 Create manual rollback buildspec for production
+  - Create buildspec-rollback.yml for manual production rollback capability
+  - Add environment validation to ensure only production stacks can be rolled back
+  - Implement S3 template version retrieval logic to get previous version
+  - Add CloudFormation update-stack command with previous template version
+  - Include stack update wait and status verification
+  - Output rollback completion details and previous version identifier
+  - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.5_
+
+- [ ] 7.2 Write property test for rollback buildspec production safety
+  - **Property 6: Rollback buildspec targets production only**
+  - **Validates: Requirements 7.5**
+
 - [x] 8. Create change management SOP
   - Create docs/sops/change-management.md
   - Document process for proposing infrastructure changes via pull requests
@@ -81,7 +94,7 @@
   - Document dev-to-prod promotion workflow
   - Specify testing requirements in dev environment before prod deployment
   - Document rollback decision criteria and approval process
-  - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.5_
+  - _Requirements: 8.1, 8.2, 8.3, 8.4, 8.5_
 
 - [x] 9. Create release process SOP
   - Create docs/sops/release-process.md
@@ -90,7 +103,7 @@
   - Document pre-deployment validation steps
   - Specify post-deployment verification procedures
   - Document communication requirements for production releases
-  - _Requirements: 8.1, 8.2, 8.3, 8.4, 8.5_
+  - _Requirements: 9.1, 9.2, 9.3, 9.4, 9.5_
 
 - [x] 10. Create operations SOP
   - Create docs/sops/operations.md
@@ -99,22 +112,22 @@
   - Document monthly cost review procedures using CloudWatch metrics
   - Specify procedures for monitoring pipeline execution status
   - Document procedures for reviewing CloudFormation stack drift
-  - _Requirements: 9.1, 9.2, 9.3, 9.4, 9.5_
+  - _Requirements: 10.1, 10.2, 10.3, 10.4, 10.5_
 
 - [x] 10.1 Write property test for documentation completeness
   - **Property 5: All required documentation files exist**
-  - **Validates: Requirements 4.1, 5.1, 6.1, 7.1, 8.1, 9.1, 12.3, 12.4**
+  - **Validates: Requirements 4.1, 5.1, 6.1, 8.1, 9.1, 10.1, 13.3, 13.4**
 
 - [x] 11. Update buildspec for monitoring stack deployment
   - Update buildspec.yml to upload monitoring template to S3
   - Ensure monitoring template is included in S3 sync command
   - Verify template bucket path matches main.yaml reference
-  - _Requirements: 10.1_
+  - _Requirements: 11.1_
 
 - [x] 12. Update TaskCat configuration for monitoring
   - Update .taskcat.yml to include parameters for monitoring stack
   - Verify monitoring stack deploys successfully in test runs
-  - _Requirements: 10.1_
+  - _Requirements: 11.1_
 
 - [ ] 13. Checkpoint - Verify monitoring infrastructure deployment
   - Ensure all tests pass, ask the user if questions arise
@@ -126,7 +139,7 @@
   - Document how to access CloudWatch dashboards and alarms
   - Provide instructions for capturing dashboard screenshots
   - Document log group locations and sample queries
-  - _Requirements: 12.1, 12.2, 12.3, 12.4, 12.5_
+  - _Requirements: 13.1, 13.2, 13.3, 13.4, 13.5_
 
 - [ ] 15. Final checkpoint - Complete MOB-005 compliance verification
   - Ensure all tests pass, ask the user if questions arise
