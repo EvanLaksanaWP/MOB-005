@@ -17,7 +17,7 @@ Resources:
   TemplateBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Sub 'web-templates-prod-${AWS::AccountId}-${AWS::Region}-evangtg123'
+      BucketName: !Sub 'web-templates-prod-${AWS::AccountId}-evangtg123'
 
   CodeBuildRole:
     Type: AWS::IAM::Role
