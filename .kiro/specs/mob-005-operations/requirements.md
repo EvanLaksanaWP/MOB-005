@@ -94,6 +94,18 @@ This specification defines the requirements to achieve AWS Migration Services Co
 
 ### Requirement 7
 
+**User Story:** As an operations engineer, I want a manual rollback capability for production, so that I can revert to a previous stable version when needed even if the current deployment is technically successful.
+
+#### Acceptance Criteria
+
+1. WHEN a manual rollback is initiated THEN the System SHALL provide a buildspec-rollback.yml file for production environment
+2. WHEN buildspec-rollback.yml executes THEN the System SHALL retrieve the previous CloudFormation stack template version from S3
+3. WHEN the rollback buildspec runs THEN the System SHALL update the production stack to the previous template version
+4. WHEN the rollback completes THEN the System SHALL verify the stack update succeeded and output the previous version identifier
+5. WHERE the rollback buildspec is used THEN it SHALL only operate on production environment stacks to prevent accidental dev rollbacks
+
+### Requirement 8
+
 **User Story:** As an operations engineer, I want documented change management procedures, so that infrastructure changes follow a controlled process.
 
 #### Acceptance Criteria
@@ -104,7 +116,7 @@ This specification defines the requirements to achieve AWS Migration Services Co
 4. WHEN the change management SOP is accessed THEN the System SHALL specify testing requirements in dev environment before prod deployment
 5. WHEN the change management SOP is accessed THEN the System SHALL document rollback decision criteria and approval process
 
-### Requirement 8
+### Requirement 9
 
 **User Story:** As an operations engineer, I want documented release procedures, so that production deployments are executed consistently.
 
@@ -116,7 +128,7 @@ This specification defines the requirements to achieve AWS Migration Services Co
 4. WHEN the release process SOP is accessed THEN the System SHALL specify post-deployment verification procedures
 5. WHEN the release process SOP is accessed THEN the System SHALL document communication requirements for production releases
 
-### Requirement 9
+### Requirement 10
 
 **User Story:** As an operations engineer, I want documented daily operations procedures, so that routine tasks are performed consistently.
 
@@ -128,7 +140,7 @@ This specification defines the requirements to achieve AWS Migration Services Co
 4. WHEN the operations SOP is accessed THEN the System SHALL specify procedures for monitoring pipeline execution status
 5. WHEN the operations SOP is accessed THEN the System SHALL document procedures for reviewing CloudFormation stack drift
 
-### Requirement 10
+### Requirement 11
 
 **User Story:** As a system architect, I want monitoring infrastructure defined as code, so that monitoring is version-controlled and reproducible.
 
@@ -141,7 +153,7 @@ This specification defines the requirements to achieve AWS Migration Services Co
 5. WHEN the monitoring template is created THEN the System SHALL define CloudWatch log groups as CloudFormation resources
 6. WHEN the monitoring template is deployed THEN the System SHALL integrate with existing nested stack architecture in main.yaml
 
-### Requirement 11
+### Requirement 12
 
 **User Story:** As an operations engineer, I want SNS notifications delivered to email, so that I receive alerts for critical infrastructure issues.
 
@@ -153,7 +165,7 @@ This specification defines the requirements to achieve AWS Migration Services Co
 4. WHEN SNS topic is deployed THEN the System SHALL output topic ARN for reference in alarm configurations
 5. WHERE email subscription requires confirmation THEN the deployment documentation SHALL note manual confirmation step
 
-### Requirement 12
+### Requirement 13
 
 **User Story:** As a compliance auditor, I want evidence of operational monitoring, so that I can verify MOB-005 compliance.
 

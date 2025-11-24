@@ -1,0 +1,127 @@
+version: 0.2
+
+env:
+  variables:
+    STACK_NAME: "web-infrastructure-prod"
+    AWS_REGION: "ap-southeast-2"
+
+phases:
+  install:
+    runtime-versions:
+      python: 3.9
+  pre_build:
+    commands:
+      - echo "Manual Rollback Process Started on `date`"
+      - echo "Validating production environment..."
+      - |
+        if [[ ! "$STACK_NAME" =~ "prod" ]]; then
+          echo "ERROR: Rollback only allowed for production stacks"
+          echo "Current stack name: $STACK_NAME"
+          exit 1
+        fi
+      - echo "Production environment validated"
+      - echo "Checking current stack status..."
+      - |
+        CURRENT_STATUS=$(aws cloudformation describe-stacks \
+          --stack-name $STACK_NAME \
+          --region $AWS_REGION \
+          --query 'Stacks[0].StackStatus' \
+          --output text 2>/dev/null || echo "DOES_NOT_EXIST")
+        
+        if [ "$CURRENT_STATUS" = "DOES_NOT_EXIST" ]; then
+          echo "ERROR: Stack $STACK_NAME does not exist"
+          exit 1
+        fi
+        
+        if [[ "$CURRENT_STATUS" =~ "IN_PROGRESS" ]]; then
+          echo "ERROR: Stack is currently in $CURRENT_STATUS state"
+          echo "Cannot rollback while stack operation is in progress"
+          exit 1
+        fi
+        
+        echo "Current stack status: $CURRENT_STATUS"
+  build:
+    commands:
+      - echo "Retrieving template bucket from stack parameters..."
+      - |
+        TEMPLATE_BUCKET=$(aws cloudformation describe-stacks \
+          --stack-name web-pipeline-prod \
+          --region $AWS_REGION \
+          --query 'Stacks[0].Outputs[?OutputKey==`TemplateBucket`].OutputValue' \
+          --output text 2>/dev/null)
+        
+        if [ -z "$TEMPLATE_BUCKET" ]; then
+          TEMPLATE_BUCKET="web-templates-prod-${AWS_ACCOUNT_ID}-${AWS_REGION}-evangtg123"
+        fi
+        
+        echo "Template bucket: $TEMPLATE_BUCKET"
+      - echo "Listing S3 template versions..."
+      - |
+        aws s3api list-object-versions \
+          --bucket $TEMPLATE_BUCKET \
+          --prefix main.yaml \
+          --query 'Versions[*].[VersionId,LastModified,IsLatest]' \
+          --output table
+      - echo "Retrieving previous template version..."
+      - |
+        PREVIOUS_VERSION=$(aws s3api list-object-versions \
+          --bucket $TEMPLATE_BUCKET \
+          --prefix main.yaml \
+          --query 'Versions[?IsLatest==`false`] | [0].VersionId' \
+          --output text)
+        
+        if [ -z "$PREVIOUS_VERSION" ] || [ "$PREVIOUS_VERSION" = "None" ]; then
+          echo "ERROR: No previous template version found"
+          echo "Cannot rollback - this may be the first deployment"
+          exit 1
+        fi
+        
+        echo "Previous version ID: $PREVIOUS_VERSION"
+      - echo "Downloading previous template version..."
+      - |
+        aws s3api get-object \
+          --bucket $TEMPLATE_BUCKET \
+          --key main.yaml \
+          --version-id $PREVIOUS_VERSION \
+          main-previous.yaml
+        
+        echo "Previous template downloaded successfully"
+      - echo "Executing rollback to previous version..."
+      - |
+        aws cloudformation update-stack \
+          --stack-name $STACK_NAME \
+          --template-body file://main-previous.yaml \
+          --parameters ParameterKey=Environment,UsePreviousValue=true \
+          --capabilities CAPABILITY_IAM \
+          --region $AWS_REGION
+        
+        echo "Stack update initiated with previous template version"
+  post_build:
+    commands:
+      - echo "Waiting for stack update to complete..."
+      - |
+        aws cloudformation wait stack-update-complete \
+          --stack-name $STACK_NAME \
+          --region $AWS_REGION
+      - echo "Rollback completed successfully on `date`"
+      - echo "Verifying stack status..."
+      - |
+        FINAL_STATUS=$(aws cloudformation describe-stacks \
+          --stack-name $STACK_NAME \
+          --region $AWS_REGION \
+          --query 'Stacks[0].StackStatus' \
+          --output text)
+        
+        echo "Final stack status: $FINAL_STATUS"
+      - echo "Stack outputs:"
+      - |
+        aws cloudformation describe-stacks \
+          --stack-name $STACK_NAME \
+          --region $AWS_REGION \
+          --query 'Stacks[0].Outputs' \
+          --output table
+      - echo "Rollback details:"
+      - echo "  - Previous version ID: $PREVIOUS_VERSION"
+      - echo "  - Stack name: $STACK_NAME"
+      - echo "  - Region: $AWS_REGION"
+      - echo "  - Completion time: `date`"

@@ -39,10 +39,29 @@ Resources:
                   - logs:CreateLogGroup
                   - logs:CreateLogStream
                   - logs:PutLogEvents
+                  - logs:DeleteLogGroup
+                  - logs:DescribeLogGroups
+                  - logs:PutRetentionPolicy
+                  - logs:TagResource
                   - s3:*
                   - cloudformation:*
                   - ec2:*
                   - elasticloadbalancing:*
+                  - cloudwatch:PutDashboard
+                  - cloudwatch:GetDashboard
+                  - cloudwatch:ListDashboards
+                  - cloudwatch:DeleteDashboards
+                  - cloudwatch:PutMetricAlarm
+                  - cloudwatch:DeleteAlarms
+                  - cloudwatch:DescribeAlarms
+                  - sns:CreateTopic
+                  - sns:DeleteTopic
+                  - sns:GetTopicAttributes
+                  - sns:SetTopicAttributes
+                  - sns:Subscribe
+                  - sns:Unsubscribe
+                  - sns:ListSubscriptionsByTopic
+                  - sns:TagResource
                   - iam:PassRole
                   - iam:CreateServiceLinkedRole
                   - iam:CreateRole
@@ -50,14 +69,17 @@ Resources:
                   - iam:PutRolePolicy
                   - iam:DeleteRolePolicy
                   - iam:GetRole
+                  - iam:GetRolePolicy
                   - iam:CreateInstanceProfile
                   - iam:DeleteInstanceProfile
+                  - iam:GetInstanceProfile
                   - iam:AddRoleToInstanceProfile
                   - iam:RemoveRoleFromInstanceProfile
+                  - iam:AttachRolePolicy
+                  - iam:DetachRolePolicy
+                  - iam:ListAttachedRolePolicies
                   - iam:TagRole
                   - iam:UntagRole
-                  - iam:DetachRolePolicy 
-                  - iam:AttachRolePolicy
                   - ssm:GetParameter
                   - ssm:GetParameters
                 Resource: '*'

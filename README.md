@@ -19,16 +19,28 @@ This project implements a complete CI/CD pipeline for AWS 2-tier web infrastruct
 
 ```
 ├── templates/
-│   ├── network.yaml      # VPC, subnets, routing
-│   ├── security.yaml     # Security groups
-│   ├── alb.yaml         # Application Load Balancer
-│   └── ec2.yaml         # EC2 instance with auto-registration
-├── main.yaml            # Main orchestration template
-├── pipeline-dev.yaml    # Dev environment pipeline
-├── pipeline-prod.yaml   # Prod environment pipeline
-├── buildspec.yml        # Deployment build specification
-├── buildspec-test.yml   # Testing build specification
-└── .taskcat.yml         # TaskCat testing configuration
+│   ├── network.yaml         # VPC, subnets, routing
+│   ├── security.yaml        # Security groups
+│   ├── alb.yaml            # Application Load Balancer
+│   ├── ec2.yaml            # EC2 instance with auto-registration
+│   └── monitoring.yaml     # CloudWatch dashboards, alarms, logs
+├── docs/
+│   ├── runbooks/           # Operational procedures
+│   │   ├── deployment.md
+│   │   ├── incident-response.md
+│   │   └── rollback.md
+│   ├── sops/              # Standard operating procedures
+│   │   ├── change-management.md
+│   │   ├── release-process.md
+│   │   └── operations.md
+│   └── compliance/        # MOB-005 compliance evidence
+├── main.yaml              # Main orchestration template
+├── pipeline-dev.yaml      # Dev environment pipeline
+├── pipeline-prod.yaml     # Prod environment pipeline
+├── buildspec.yml          # Deployment build specification
+├── buildspec-test.yml     # Testing build specification
+├── buildspec-rollback.yml # Manual rollback specification (prod only)
+└── .taskcat.yml          # TaskCat testing configuration
 ```
 
 ## Deployment Instructions
@@ -83,10 +95,31 @@ aws cloudformation deploy \
 - **Artifact Storage**: Test reports stored in S3 for review
 
 ### Rollback Strategy
+
+#### Automatic Rollback
 - **Automatic Detection**: Monitors CloudFormation deployment status
 - **Immediate Rollback**: Triggers on any deployment failure
 - **Stack Recovery**: Handles both update and create failures
 - **Event Logging**: Detailed failure analysis in build logs
+
+#### Manual Rollback (Production Only)
+- **Controlled Reversion**: Rollback to previous stable version even when deployment succeeds
+- **Safety Checks**: Production-only validation prevents accidental dev rollbacks
+- **Version Management**: Retrieves previous template version from S3
+- **Verification**: Automated status checks and output validation
+
+**Execute Manual Rollback:**
+```bash
+# Via AWS CLI
+aws codebuild start-build \
+  --project-name web-rollback-prod \
+  --region ap-southeast-2
+
+# Via CodeBuild Console
+# Navigate to web-rollback-prod project and click "Start build"
+```
+
+See `docs/runbooks/rollback.md` for detailed rollback procedures.
 
 ## Monitoring & Troubleshooting
 
