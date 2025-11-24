@@ -74,7 +74,7 @@
   - Document manual stack deletion and redeployment procedures for failed automatic rollback
   - _Requirements: 6.1, 6.2, 6.3, 6.4, 6.5_
 
-- [ ] 7.1 Create manual rollback buildspec for production
+- [x] 7.1 Create manual rollback buildspec for production
   - Create buildspec-rollback.yml for manual production rollback capability
   - Add environment validation to ensure only production stacks can be rolled back
   - Implement S3 template version retrieval logic to get previous version
