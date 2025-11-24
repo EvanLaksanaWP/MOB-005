@@ -39,7 +39,7 @@ Resources:
   InfrastructureDashboard:
     Type: AWS::CloudWatch::Dashboard
     Properties:
-      DashboardName: !Sub 'infrastructure-${Environment}'
+      DashboardName: !Sub 'infrastructure-${Environment}-${AWS::StackName}'
       DashboardBody: !Sub |
         {
           "widgets": [
