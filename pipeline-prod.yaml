@@ -110,23 +110,23 @@ Resources:
         Type: CODEPIPELINE
         BuildSpec: buildspec.yml
 
-  RollbackProject:
-    Type: AWS::CodeBuild::Project
-    Properties:
-      Name: web-rollback-prod
-      ServiceRole: !GetAtt CodeBuildRole.Arn
-      Artifacts:
-        Type: CODEPIPELINE
-      Environment:
-        Type: LINUX_CONTAINER
-        ComputeType: BUILD_GENERAL1_SMALL
-        Image: aws/codebuild/amazonlinux2-x86_64-standard:3.0
-        EnvironmentVariables:
-          - Name: ENVIRONMENT
-            Value: prod
-      Source:
-        Type: CODEPIPELINE
-        BuildSpec: buildspec-rollback.yml
+  # RollbackProject:
+  #   Type: AWS::CodeBuild::Project
+  #   Properties:
+  #     Name: web-rollback-prod
+  #     ServiceRole: !GetAtt CodeBuildRole.Arn
+  #     Artifacts:
+  #       Type: CODEPIPELINE
+  #     Environment:
+  #       Type: LINUX_CONTAINER
+  #       ComputeType: BUILD_GENERAL1_SMALL
+  #       Image: aws/codebuild/amazonlinux2-x86_64-standard:3.0
+  #       EnvironmentVariables:
+  #         - Name: ENVIRONMENT
+  #           Value: prod
+  #     Source:
+  #       Type: CODEPIPELINE
+  #       BuildSpec: buildspec-rollback.yml
 
   CodePipelineRole:
     Type: AWS::IAM::Role
@@ -175,7 +175,7 @@ Resources:
                 Version: '1'
               Configuration:
                 ConnectionArn: !Ref ConnectionArn
-                FullRepositoryId: 'EvanLaksanaWP/cloudformation-cicd-mcr'
+                FullRepositoryId: 'EvanLaksanaWP/MOB-005'
                 BranchName: main
               OutputArtifacts:
                 - Name: SourceOutput
